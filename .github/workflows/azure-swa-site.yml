@@ -1,14 +1,13 @@
 name: Azure Static Web Apps CI/CD
 
-# DISABLED: Workflow listens to non-existent branch
 on:
   push:
     branches:
-      - disabled-workflow-branch
+      - main
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - disabled-workflow-branch
+      - main
 
 jobs:
   build_and_deploy:
