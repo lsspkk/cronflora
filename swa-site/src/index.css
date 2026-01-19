@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.line-numbers {
+  counter-reset: line;
+}
+
+.line-numbers > span {
+  counter-increment: line;
+}
+
+.line-numbers > span::before {
+  content: counter(line);
+  display: inline-block;
+  width: 3em;
+  padding-right: 0.5em;
+  text-align: right;
+  color: #6b7280;
+  border-right: 1px solid #e5e7eb;
+  margin-right: 0.5em;
+  user-select: none;
+}

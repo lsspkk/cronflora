@@ -1,0 +1,26 @@
+{
+  "name": "swa-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:swa": "swa start http://localhost:5173 --run \"npm run dev\"",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.0.9",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.5",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

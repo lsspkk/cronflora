@@ -1,0 +1,37 @@
+{
+  "routes": [
+    {
+      "route": "/.auth/login/github",
+      "statusCode": 200
+    },
+    {
+      "route": "/.auth/login/aad",
+      "statusCode": 404
+    },
+    {
+      "route": "/.auth/login/twitter",
+      "statusCode": 404
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "*.{css,js,svg,png,jpg,jpeg,gif,ico}"]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY"
+  },
+  "auth": {
+    "identityProviders": {
+      "github": {
+        "registration": {
+          "clientIdSettingName": "GITHUB_CLIENT_ID",
+          "clientSecretSettingName": "GITHUB_CLIENT_SECRET"
+        },
+        "login": {
+          "scopes": ["repo"]
+        }
+      }
+    }
+  }
+}
