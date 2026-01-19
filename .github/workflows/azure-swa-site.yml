@@ -43,7 +43,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "swa-site/dist"
-          # api_location: "swa-site/api"
+          api_location: "swa-site/api2"
           skip_app_build: true
 
   close_pull_request:
