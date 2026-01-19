@@ -40,10 +40,12 @@ REQUIRED_FILES=(
     "package.json"
     "public/staticwebapp.config.json"
     "api/package.json"
-    "api/host.json"
+    "api/src/host.json"
     "api/tsconfig.json"
-    "api/src/functions/getFile.ts"
-    "api/src/functions/saveFile.ts"
+    "api/src/functions/getFile/index.ts"
+    "api/src/functions/getFile/function.json"
+    "api/src/functions/saveFile/index.ts"
+    "api/src/functions/saveFile/function.json"
 )
 
 ALL_OK=true
@@ -91,13 +93,14 @@ echo ""
 # Step 3: Validate host.json
 echo "Step 3: Validating host.json..."
 
-if grep -q '"version": "2.0"' "$API_DIR/host.json"; then
+HOST_JSON="$API_DIR/src/host.json"
+if grep -q '"version": "2.0"' "$HOST_JSON"; then
     echo -e "  ${GREEN}✓${NC} Functions runtime version 2.0"
 else
     echo -e "  ${RED}✗${NC} host.json should have version 2.0"
 fi
 
-if grep -q 'extensionBundle' "$API_DIR/host.json"; then
+if grep -q 'extensionBundle' "$HOST_JSON"; then
     echo -e "  ${GREEN}✓${NC} Extension bundle configured"
 else
     echo -e "  ${YELLOW}⚠${NC} No extension bundle - may need for some features"
@@ -145,14 +148,16 @@ if [ "$QUICK_MODE" = false ]; then
     echo "  Building..."
     npm run build
 
-    if [ -d "dist/src/functions" ]; then
+    if [ -f "dist/host.json" ]; then
         echo -e "  ${GREEN}✓${NC} API build successful"
-        echo "  Functions found:"
-        ls -1 dist/src/functions/*.js 2>/dev/null | while read f; do
-            echo "    - $(basename "$f" .js)"
+        echo "  Checking function.json files..."
+        count=$(find dist -name function.json | wc -l)
+        echo -e "  ${GREEN}✓${NC} Found $count function(s):"
+        find dist -name function.json -exec dirname {} \; | while read d; do
+            echo "    - $(basename "$d")"
         done
     else
-        echo -e "  ${RED}✗${NC} API build failed - dist/src/functions not found"
+        echo -e "  ${RED}✗${NC} API build failed - dist/host.json not found"
         exit 1
     fi
     echo ""

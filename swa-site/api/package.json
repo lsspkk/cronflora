@@ -1,19 +1,19 @@
 {
   "name": "swa-site-api",
   "version": "1.0.0",
-  "main": "dist/src/functions/*.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-json",
+    "copy-json": "cp src/host.json dist/ && find src/functions -name 'function.json' -exec sh -c 'mkdir -p dist/functions/$(basename $(dirname {})) && cp {} dist/functions/$(basename $(dirname {}))/' \\;",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "start": "func start",
+    "start": "func start --typescript",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@azure/functions": "^4.5.0"
+    "@azure/functions": "^3.5.1"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

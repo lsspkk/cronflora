@@ -1,0 +1,97 @@
+# Azure Functions Deployment Failure Analysis
+Date: 2026-01-19
+
+## Error Summary
+**Deployment Failed** - "Failed to deploy the Azure Functions"
+
+## Root Cause
+**Node.js Version Mismatch**
+
+The Azure Functions build environment (Oryx) is using Node.js 18.20.8, but the `@azure/functions@4.11.0` package requires Node.js 20 or higher.
+
+```
+npm warn EBADENGINE Unsupported engine {
+  package: '@azure/functions@4.11.0',
+  required: { node: '>=20.0' },
+  current: { node: 'v18.20.8', npm: '10.8.2' }
+}
+```
+
+## What Happened
+1. Oryx detected Node.js 18.20.8 and installed it
+2. npm install ran with warnings about incompatible engine
+3. npm run build (tsc) succeeded - TypeScript compiled fine
+4. Artifacts were zipped successfully
+5. **Deployment to Azure Functions runtime FAILED**
+
+The build succeeded, but the Azure Functions runtime rejected the deployment because the function app is configured for Node.js 18, which is incompatible with the installed Azure Functions SDK.
+
+## Fix Options
+
+### Option 1: Upgrade to Node.js 20 (Recommended)
+Update these files:
+
+**swa-site/api/package.json** - Add engines field:
+```json
+{
+  "engines": {
+    "node": ">=20.0"
+  }
+}
+```
+
+**Azure Portal** or CLI:
+- Go to Static Web App > Configuration > Application settings
+- Set `FUNCTIONS_NODE_VERSION` to `~20`
+
+Or via CLI:
+```bash
+az staticwebapp appsettings set \
+  --name cronflora-editor-swa \
+  --resource-group rg-cronflora-swa-site \
+  --setting-names "FUNCTIONS_NODE_VERSION=~20"
+```
+
+### Option 2: Downgrade @azure/functions (Not Recommended)
+Use an older version of the Azure Functions SDK that supports Node 18:
+```bash
+npm install @azure/functions@4.5.0
+```
+Note: Version 4.5.x was the last version supporting Node 18.
+
+### Option 3: Add .nvmrc file
+Create `swa-site/api/.nvmrc`:
+```
+20
+```
+
+And/or create `swa-site/api/.node-version`:
+```
+20
+```
+
+## Files to Check/Modify
+1. `swa-site/api/package.json` - Add engines field
+2. `swa-site/api/host.json` - May need version update
+3. `swa-site/staticwebapp.config.json` - Check platform config
+4. Azure Portal settings - FUNCTIONS_NODE_VERSION
+
+## Timeline
+- Oryx build: 5 seconds (successful)
+- Deployment polling: ~19 seconds
+- Final status: Failed
+
+## Verification After Fix
+Run:
+```bash
+az staticwebapp appsettings list \
+  --name cronflora-editor-swa \
+  --resource-group rg-cronflora-swa-site
+```
+
+Should show `FUNCTIONS_NODE_VERSION=~20`
+
+## References
+- Azure Functions Node.js versions: https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node
+- @azure/functions changelog: https://github.com/Azure/azure-functions-nodejs-library/releases
+- Oryx build system: https://github.com/Microsoft/Oryx

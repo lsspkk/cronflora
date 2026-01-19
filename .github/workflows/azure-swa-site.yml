@@ -22,19 +22,44 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: swa-site/package-lock.json
+          cache-dependency-path: |
+            swa-site/package-lock.json
+            swa-site/api/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: swa-site
+        run: npm ci
+
+      - name: Install API dependencies
+        working-directory: swa-site/api
         run: npm ci
 
       - name: Type check frontend
         working-directory: swa-site
         run: npm run typecheck
 
+      - name: Type check API
+        working-directory: swa-site/api
+        run: npm run typecheck
+
       - name: Build frontend
         working-directory: swa-site
         run: npm run build
+
+      - name: Build API
+        working-directory: swa-site/api
+        run: npm run build
+
+      - name: Validate Azure Functions structure
+        run: |
+          echo "Checking API build output..."
+          test -f swa-site/api/dist/host.json || (echo "ERROR: host.json not found" && exit 1)
+          count=$(find swa-site/api/dist -name function.json | wc -l)
+          echo "Found $count function.json files"
+          test "$count" -gt 0 || (echo "ERROR: No function.json files found" && exit 1)
+          echo "Functions found:"
+          find swa-site/api/dist -name function.json -exec dirname {} \; | xargs -I {} basename {}
+          echo "Validation passed!"
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -43,9 +68,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "swa-site/dist"
-          api_location: "swa-site/api"
+          api_location: "swa-site/api/dist"
           skip_app_build: true
-          # Let Azure build the API - this enables runtime detection
+          skip_api_build: true
 
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
