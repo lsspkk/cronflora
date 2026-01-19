@@ -15,7 +15,7 @@ export function MenuBar({ documentPath, isLoaded, onLoad, onSave, onSearchReplac
   return (
     <div className='bg-gray-800 text-white px-4 py-2 flex items-center justify-between'>
       <div className='flex items-center gap-4'>
-        <span className='font-semibold text-lg'>CronFlora</span>
+        <img src="/vite.svg" alt="CronFlora" className="w-6 h-6" />
 
         <div className='flex items-center gap-2'>
           <button
