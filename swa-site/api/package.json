@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-json",
-    "copy-json": "cp src/host.json dist/ && for dir in src/*/; do if [ -f \"${dir}function.json\" ]; then name=$(basename \"$dir\"); mkdir -p \"dist/$name\" && cp \"${dir}function.json\" \"dist/$name/\"; fi; done",
+    "copy-json": "cp src/host.json dist/ && cp package.json package-lock.json dist/ && for dir in src/*/; do if [ -f \"${dir}function.json\" ]; then name=$(basename \"$dir\"); mkdir -p \"dist/$name\" && cp \"${dir}function.json\" \"dist/$name/\"; fi; done",
     "watch": "tsc -w",
     "prestart": "npm run build",
     "start": "func start --typescript",
