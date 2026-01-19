@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { MenuBar } from './components/MenuBar'
 import { Editor } from './components/Editor'
 import { SearchReplace } from './components/SearchReplace'
@@ -26,13 +26,7 @@ function App() {
     }
     try {
       setError(null)
-      const file = await getFile(
-        user.accessToken,
-        config.githubOwner,
-        config.githubRepo,
-        config.documentPath,
-        config.githubBranch
-      )
+      const file = await getFile(user.accessToken, config.githubOwner, config.githubRepo, config.documentPath, config.githubBranch)
       setContent(file.content)
       setOriginalContent(file.content)
       setFileSha(file.sha)
@@ -41,6 +35,13 @@ function App() {
       setError(err instanceof Error ? err.message : 'Failed to load document')
     }
   }, [user, config])
+
+  // Auto-load file when user logs in
+  useEffect(() => {
+    if (user?.accessToken && !isLoaded && !loading) {
+      handleLoad()
+    }
+  }, [user?.accessToken, isLoaded, loading, handleLoad])
 
   const handleSave = useCallback(async () => {
     if (!user?.accessToken) {
@@ -62,7 +63,7 @@ function App() {
         config.githubBranch,
         content,
         fileSha,
-        `Update ${config.documentPath}`
+        `Update ${config.documentPath}`,
       )
       setFileSha(newSha)
       setOriginalContent(content)
@@ -73,27 +74,30 @@ function App() {
     }
   }, [user, config, content, fileSha])
 
-  const handleReplace = useCallback((search: string, replace: string, replaceAll: boolean) => {
-    if (replaceAll) {
-      setContent(content.split(search).join(replace))
-    } else {
-      const index = content.indexOf(search)
-      if (index !== -1) {
-        setContent(content.slice(0, index) + replace + content.slice(index + search.length))
+  const handleReplace = useCallback(
+    (search: string, replace: string, replaceAll: boolean) => {
+      if (replaceAll) {
+        setContent(content.split(search).join(replace))
+      } else {
+        const index = content.indexOf(search)
+        if (index !== -1) {
+          setContent(content.slice(0, index) + replace + content.slice(index + search.length))
+        }
       }
-    }
-  }, [content])
+    },
+    [content],
+  )
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-600">Loading...</div>
+      <div className='h-screen flex items-center justify-center bg-gray-100'>
+        <div className='text-gray-600'>Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className='h-screen flex flex-col'>
       <MenuBar
         documentPath={config.documentPath}
         isLoaded={isLoaded}
@@ -107,28 +111,14 @@ function App() {
         onLogout={logout}
       />
 
-      {error && (
-        <div className="bg-red-100 border-b border-red-300 text-red-700 px-4 py-2 text-sm">
-          Error: {error}
-        </div>
-      )}
+      {error && <div className='bg-red-100 border-b border-red-300 text-red-700 px-4 py-2 text-sm'>Error: {error}</div>}
 
-      <Editor
-        content={content}
-        onChange={setContent}
-        disabled={!isLoaded}
-      />
+      <Editor content={content} onChange={setContent} disabled={!isLoaded} />
 
-      <SearchReplace
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onReplace={handleReplace}
-      />
+      <SearchReplace isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onReplace={handleReplace} />
 
-      <div className="bg-gray-200 px-4 py-1 text-sm text-gray-600 flex justify-between">
-        <span>
-          {isLoaded ? `Editing: ${config.documentPath}` : 'No document loaded'}
-        </span>
+      <div className='bg-gray-200 px-4 py-1 text-sm text-gray-600 flex justify-between'>
+        <span>{isLoaded ? `Editing: ${config.documentPath}` : 'No document loaded'}</span>
         <span>
           Lines: {content.split('\n').length} | Characters: {content.length}
         </span>
