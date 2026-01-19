@@ -1,14 +1,5 @@
 /**
  * Minimal Login Page - Optimized for bandwidth conservation
- *
- * This component is intentionally lightweight to minimize initial page load:
- * - No heavy CSS frameworks loaded initially
- * - Minimal DOM elements
- * - Inline critical CSS only
- * - No images or external resources
- *
- * The editor and other components are only loaded after successful authentication,
- * keeping the initial bundle size small and bandwidth usage minimal.
  */
 
 interface LoginPageProps {
@@ -50,19 +41,8 @@ export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
             marginTop: 0,
           }}
         >
-          Document Editor
+          Cronflora
         </h1>
-
-        <p
-          style={{
-            fontSize: '14px',
-            color: '#718096',
-            marginBottom: '32px',
-            lineHeight: '1.5',
-          }}
-        >
-          Sign in with GitHub to access and edit your documents
-        </p>
 
         <button
           onClick={onLogin}
@@ -89,19 +69,8 @@ export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
             e.currentTarget.style.background = loading ? '#4a5568' : '#2d3748'
           }}
         >
-          {loading ? 'Connecting...' : '→ Sign in with GitHub'}
+          {loading ? 'Connecting...' : 'Sign in with GitHub'}
         </button>
-
-        <p
-          style={{
-            marginTop: '24px',
-            fontSize: '12px',
-            color: '#a0aec0',
-            lineHeight: '1.4',
-          }}
-        >
-          Bandwidth-optimized: The full editor loads only after authentication
-        </p>
       </div>
     </div>
   )
