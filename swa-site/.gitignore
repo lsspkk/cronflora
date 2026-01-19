@@ -29,5 +29,7 @@ npm-debug.log*
 # Local development
 .swa/
 
+# Deployment history
+infra/.deployment_history.json
 
 reports/*security*
