@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Azure Static Web App Budget Management Script
-# Usage: ./budget.sh [resource-group]
 #
 # === HOW TO KEEP AZURE STATIC WEB APPS MOSTLY FREE ===
 #
@@ -33,7 +32,9 @@
 
 set -e
 
-RESOURCE_GROUP=${1:-"rg-cronflora-swa-site"}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
 BUDGET_NAME="budget-${RESOURCE_GROUP}"
 BUDGET_AMOUNT=20
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)

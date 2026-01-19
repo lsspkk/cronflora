@@ -40,11 +40,17 @@ az staticwebapp appsettings set \
         "GITHUB_CLIENT_SECRET=$GITHUB_CLIENT_SECRET" \
     --output none
 
+# Get the actual app URL
+SWA_URL=$(az staticwebapp show \
+    --name "$APP_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query defaultHostname -o tsv)
+
 echo ""
 echo "=== GitHub OAuth Configuration Complete ==="
 echo ""
 echo "Your GitHub OAuth App should have these settings:"
-echo "  Homepage URL: https://jolly-ground-01b564403.2.azurestaticapps.net"
-echo "  Authorization callback URL: https://jolly-ground-01b564403.2.azurestaticapps.net/.auth/login/github/callback"
+echo "  Homepage URL: https://$SWA_URL"
+echo "  Authorization callback URL: https://$SWA_URL/.auth/login/github/callback"
 echo ""
 echo "If not configured, go to https://github.com/settings/developers"

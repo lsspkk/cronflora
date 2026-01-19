@@ -1,12 +1,9 @@
 #!/bin/bash
 
-# Azure Static Web App Status Script
-# Usage: ./status.sh [resource-group] [app-name]
-
 set -e
 
-RESOURCE_GROUP=${1:-"rg-cronflora-swa-site"}
-APP_NAME=${2:-"swa-document-editor"}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 echo "=== Azure Static Web App Status ==="
 echo "Resource Group: $RESOURCE_GROUP"
@@ -68,6 +65,21 @@ if az staticwebapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" > 
         echo "✓ Website is responding"
     else
         echo "⚠ Website may not be fully deployed yet"
+    fi
+    
+    # Check GitHub OAuth configuration
+    echo ""
+    echo "Checking GitHub OAuth configuration..."
+    GITHUB_CLIENT_ID_SET=$(az staticwebapp appsettings list \
+        --name "$APP_NAME" \
+        --resource-group "$RESOURCE_GROUP" \
+        --query "properties.GITHUB_CLIENT_ID" -o tsv 2>/dev/null)
+    
+    if [ -z "$GITHUB_CLIENT_ID_SET" ] || [ "$GITHUB_CLIENT_ID_SET" == "null" ]; then
+        echo "❌ GitHub OAuth not configured"
+        echo "   Run: ./configure-github-oauth.sh"
+    else
+        echo "✓ GitHub OAuth configured"
     fi
     
 else
