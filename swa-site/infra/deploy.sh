@@ -45,6 +45,15 @@ az staticwebapp create \
     --sku Free \
     --output none
 
+# Ensure FUNCTIONS_NODE_VERSION is set to ~20 for Azure Functions compatibility
+az staticwebapp appsettings set \
+    --name "$APP_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --setting-names "FUNCTIONS_NODE_VERSION=~20" \
+    --output none
+
+echo "✓ Set FUNCTIONS_NODE_VERSION=~20 for $APP_NAME"
+
 # Get deployment token
 echo ""
 echo "=== Deployment Token ==="
