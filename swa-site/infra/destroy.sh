@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# Destroy Azure Static Web App resources
-# Usage: ./destroy.sh [resource-group]
-
 set -e
 
-RESOURCE_GROUP=${1:-"rg-cronflora-swa-site"}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
 echo "=== Destroying Azure Resources ==="
 echo "Resource Group: $RESOURCE_GROUP"

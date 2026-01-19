@@ -1,14 +1,23 @@
 #!/bin/bash
 
 # Configure GitHub OAuth for Azure Static Web App
-# Usage: ./configure-github-oauth.sh <github-client-id> <github-client-secret> [resource-group] [app-name]
+# Usage: ./configure-github-oauth.sh [resource-group] [app-name]
 
 set -e
 
-GITHUB_CLIENT_ID=${1:?"Usage: ./configure-github-oauth.sh <client-id> <client-secret> [resource-group] [app-name]"}
-GITHUB_CLIENT_SECRET=${2:?"Usage: ./configure-github-oauth.sh <client-id> <client-secret> [resource-group] [app-name]"}
-RESOURCE_GROUP=${3:-"rg-cronflora-swa-site"}
-APP_NAME=${4:-"swa-document-editor"}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+fi
+
+RESOURCE_GROUP=${1:-${RESOURCE_GROUP:-"rg-cronflora-swa-site"}}
+APP_NAME=${2:-${APP_NAME:-"swa-document-editor"}}
+
+if [ -z "$GITHUB_CLIENT_ID" ] || [ -z "$GITHUB_CLIENT_SECRET" ]; then
+    echo "Error: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set in .env file"
+    exit 1
+fi
 
 echo "=== Configuring GitHub OAuth ==="
 echo "Resource Group: $RESOURCE_GROUP"
@@ -34,12 +43,8 @@ az staticwebapp appsettings set \
 echo ""
 echo "=== GitHub OAuth Configuration Complete ==="
 echo ""
-echo "Make sure your GitHub OAuth App has these settings:"
-echo "  Homepage URL: https://<your-swa-url>.azurestaticapps.net"
-echo "  Authorization callback URL: https://<your-swa-url>.azurestaticapps.net/.auth/login/github/callback"
+echo "Your GitHub OAuth App should have these settings:"
+echo "  Homepage URL: https://jolly-ground-01b564403.2.azurestaticapps.net"
+echo "  Authorization callback URL: https://jolly-ground-01b564403.2.azurestaticapps.net/.auth/login/github/callback"
 echo ""
-echo "To create a GitHub OAuth App:"
-echo "  1. Go to https://github.com/settings/developers"
-echo "  2. Click 'New OAuth App'"
-echo "  3. Fill in the details above"
-echo "  4. Copy Client ID and Client Secret"
+echo "If not configured, go to https://github.com/settings/developers"
