@@ -1,9 +1,6 @@
+
 {
-  "name": "api",
+  "name": "swa-api",
   "version": "1.0.0",
-  "description": "Minimal API functions",
-  "scripts": {
-    "start": "func start"
-  },
-  "dependencies": {}
+  "private": true
 }
