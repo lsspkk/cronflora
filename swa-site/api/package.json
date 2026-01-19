@@ -5,8 +5,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc && npm run copy-json",
-    "copy-json": "cp src/host.json dist/ && cp package.json package-lock.json dist/ && for dir in src/*/; do if [ -f \"${dir}function.json\" ]; then name=$(basename \"$dir\"); mkdir -p \"dist/$name\" && cp \"${dir}function.json\" \"dist/$name/\"; fi; done",
+    "build": "node esbuild.config.js",
     "watch": "tsc -w",
     "prestart": "npm run build",
     "start": "func start --typescript",
@@ -16,7 +15,8 @@
     "@azure/functions": "^3.5.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.0.0"
   }
 }

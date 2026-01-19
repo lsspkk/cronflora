@@ -92,7 +92,7 @@ For local API development, create `api/local.settings.json` (see `api/local.sett
 ```json
 {
   "Values": {
-    "FUNCTIONS_API_GITHUB_PAT": "ghp_your_personal_access_token"
+    "GITHUB_PAT": "ghp_your_personal_access_token"
   }
 }
 ```

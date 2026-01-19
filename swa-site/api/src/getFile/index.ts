@@ -27,7 +27,7 @@ const httpTrigger: AzureFunction = async function (
   // Get GitHub PAT from environment
   const githubPAT = getGitHubPAT()
   if (!githubPAT) {
-    context.log.error('FUNCTIONS_API_GITHUB_PAT environment variable not configured')
+    context.log.error('GITHUB_PAT environment variable not configured')
     context.res = {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

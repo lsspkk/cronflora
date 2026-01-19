@@ -20,20 +20,20 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# Load FUNCTIONS_API_GITHUB_PAT from .env file if not provided as argument
+# Load GITHUB_PAT from .env file if not provided as argument
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    # Export only the FUNCTIONS_API_GITHUB_PAT variable
-    export $(grep -v '^#' "$SCRIPT_DIR/.env" | grep 'FUNCTIONS_API_GITHUB_PAT' | xargs)
+    # Export only the GITHUB_PAT variable
+    export $(grep -v '^#' "$SCRIPT_DIR/.env" | grep 'GITHUB_PAT' | xargs)
 fi
 
-GITHUB_PAT="${1:-$FUNCTIONS_API_GITHUB_PAT}"
+GITHUB_PAT="${1:-$GITHUB_PAT}"
 
 if [ -z "$GITHUB_PAT" ]; then
     echo "Usage: $0 [github-pat]"
     echo ""
     echo "You can either:"
     echo "  1. Provide PAT as argument: $0 ghp_xxxxx"
-    echo "  2. Set FUNCTIONS_API_GITHUB_PAT in $SCRIPT_DIR/.env"
+    echo "  2. Set GITHUB_PAT in $SCRIPT_DIR/.env"
     echo ""
     echo "To create a GitHub PAT:"
     echo "  1. Go to https://github.com/settings/tokens/new"
@@ -64,16 +64,16 @@ if [[ ! "$GITHUB_PAT" =~ ^(ghp_|github_pat_) ]]; then
 fi
 
 # Set the PAT as an app setting (without VITE_ prefix - server-side only)
-echo "Setting FUNCTIONS_API_GITHUB_PAT app setting..."
+echo "Setting GITHUB_PAT app setting..."
 az staticwebapp appsettings set \
     --name "$APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
-    --setting-names "FUNCTIONS_API_GITHUB_PAT=$GITHUB_PAT" \
+    --setting-names "GITHUB_PAT=$GITHUB_PAT" \
     --output none
 
 echo ""
 echo "=== Configuration Complete ==="
-echo "FUNCTIONS_API_GITHUB_PAT has been set as an Azure app setting."
+echo "GITHUB_PAT has been set as an Azure app setting."
 echo ""
 echo "Security notes:"
 echo "  - The PAT is stored server-side only (no VITE_ prefix)"

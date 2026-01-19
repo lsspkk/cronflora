@@ -1,12 +1,12 @@
 /**
  * GitHub API utilities for server-side operations.
- * Uses the FUNCTIONS_API_GITHUB_PAT environment variable (never exposed to browser).
+ * Uses the GITHUB_PAT environment variable (never exposed to browser).
  */
 
 const GITHUB_API = 'https://api.github.com'
 
 export function getGitHubPAT(): string | undefined {
-  return process.env.FUNCTIONS_API_GITHUB_PAT
+  return process.env.GITHUB_PAT
 }
 
 export interface GitHubFileResponse {

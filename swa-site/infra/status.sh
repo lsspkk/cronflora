@@ -88,12 +88,12 @@ if az staticwebapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" > 
     GITHUB_PAT_SET=$(az staticwebapp appsettings list \
         --name "$APP_NAME" \
         --resource-group "$RESOURCE_GROUP" \
-        --query "properties.FUNCTIONS_API_GITHUB_PAT" -o tsv 2>/dev/null)
+        --query "properties.GITHUB_PAT" -o tsv 2>/dev/null)
 
     if [ -z "$GITHUB_PAT_SET" ] || [ "$GITHUB_PAT_SET" == "null" ]; then
         echo "❌ GitHub PAT not configured"
         echo "   Run: ./configure-github-pat.sh <your-github-pat>"
-        echo "   Or set FUNCTIONS_API_GITHUB_PAT in .env and run: ./configure-github-pat.sh"
+        echo "   Or set GITHUB_PAT in .env and run: ./configure-github-pat.sh"
         echo "   Create PAT at: https://github.com/settings/tokens/new (scope: repo)"
     else
         echo "✓ GitHub PAT configured (server-side only)"
