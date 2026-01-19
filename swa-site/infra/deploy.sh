@@ -5,7 +5,7 @@
 
 set -e
 
-RESOURCE_GROUP=${1:-"rg-swa-site"}
+RESOURCE_GROUP=${1:-"rg-cronflora-swa-site"}
 APP_NAME=${2:-"swa-document-editor"}
 LOCATION=${3:-"westeurope"}
 

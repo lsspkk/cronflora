@@ -18,7 +18,7 @@ Creates the Azure Static Web App and outputs the deployment token.
 ./deploy.sh [resource-group] [app-name] [location]
 
 # Defaults:
-#   resource-group: rg-swa-site
+#   resource-group: rg-cronflora-swa-site
 #   app-name: swa-document-editor
 #   location: westeurope
 ```
@@ -55,12 +55,29 @@ Deletes the resource group and all resources.
 
 3. **Create GitHub OAuth App**
    - Go to https://github.com/settings/developers
-   - Create new OAuth App
-   - Set callback URL: `https://<your-app>.azurestaticapps.net/.auth/login/github/callback`
+   - Create **TWO** separate OAuth Apps (one for local dev, one for production)
+   
+   **Production OAuth App:**
+   - Application name: `CronFlora Production` (or similar)
+   - Homepage URL: `https://<your-app>.azurestaticapps.net`
+   - Authorization callback URL: `https://<your-app>.azurestaticapps.net/.auth/login/github/callback`
+   - Enable Device Flow: **NO**
+   - Required scopes: `repo` (set in staticwebapp.config.json)
+   
 
 4. **Configure OAuth in Azure**
+   
+   Option A - Using the script with .env file:
    ```bash
-   ./configure-github-oauth.sh <client-id> <client-secret>
+   # Update infra/.env with production OAuth credentials
+   cd infra
+   source .env
+   ./configure-github-oauth.sh $GITHUB_CLIENT_ID $GITHUB_CLIENT_SECRET
+   ```
+   
+   Option B - Direct command:
+   ```bash
+   ./configure-github-oauth.sh <production-client-id> <production-client-secret>
    ```
 
 5. **Deploy**

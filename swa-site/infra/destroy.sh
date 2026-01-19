@@ -5,7 +5,7 @@
 
 set -e
 
-RESOURCE_GROUP=${1:-"rg-swa-site"}
+RESOURCE_GROUP=${1:-"rg-cronflora-swa-site"}
 
 echo "=== Destroying Azure Resources ==="
 echo "Resource Group: $RESOURCE_GROUP"

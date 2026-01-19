@@ -7,7 +7,7 @@ set -e
 
 GITHUB_CLIENT_ID=${1:?"Usage: ./configure-github-oauth.sh <client-id> <client-secret> [resource-group] [app-name]"}
 GITHUB_CLIENT_SECRET=${2:?"Usage: ./configure-github-oauth.sh <client-id> <client-secret> [resource-group] [app-name]"}
-RESOURCE_GROUP=${3:-"rg-swa-site"}
+RESOURCE_GROUP=${3:-"rg-cronflora-swa-site"}
 APP_NAME=${4:-"swa-document-editor"}
 
 echo "=== Configuring GitHub OAuth ==="
