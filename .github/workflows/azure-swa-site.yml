@@ -46,21 +46,6 @@ jobs:
         working-directory: swa-site
         run: npm run build
 
-#      - name: Build API
-#        working-directory: swa-site/api
-#        run: npm run build
-
-      - name: Validate Azure Functions structure
-        run: |
-          echo "Checking API build output..."
-          test -f swa-site/api/dist/host.json || (echo "ERROR: host.json not found" && exit 1)
-          count=$(find swa-site/api/dist -name function.json | wc -l)
-          echo "Found $count function.json files"
-          test "$count" -gt 0 || (echo "ERROR: No function.json files found" && exit 1)
-          echo "Functions found:"
-          find swa-site/api/dist -name function.json -exec dirname {} \; | xargs -I {} basename {}
-          echo "Validation passed!"
-
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
