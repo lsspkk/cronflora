@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions'
-import { parseClientPrincipal, isAuthenticated } from '../../shared/auth'
-import { getGitHubPAT, getFileFromGitHub } from '../../shared/github'
+import { parseClientPrincipal, isAuthenticated } from '../shared/auth'
+import { getGitHubPAT, getFileFromGitHub } from '../shared/github'
 
 const httpTrigger: AzureFunction = async function (
   context: Context,

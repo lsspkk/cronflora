@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions'
-import { parseClientPrincipal, isAuthenticated } from '../../shared/auth'
-import { getGitHubPAT, saveFileToGitHub } from '../../shared/github'
+import { parseClientPrincipal, isAuthenticated } from '../shared/auth'
+import { getGitHubPAT, saveFileToGitHub } from '../shared/github'
 
 interface SaveFileBody {
   owner: string

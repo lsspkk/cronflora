@@ -42,10 +42,10 @@ REQUIRED_FILES=(
     "api/package.json"
     "api/src/host.json"
     "api/tsconfig.json"
-    "api/src/functions/getFile/index.ts"
-    "api/src/functions/getFile/function.json"
-    "api/src/functions/saveFile/index.ts"
-    "api/src/functions/saveFile/function.json"
+    "api/src/getFile/index.ts"
+    "api/src/getFile/function.json"
+    "api/src/saveFile/index.ts"
+    "api/src/saveFile/function.json"
 )
 
 ALL_OK=true
