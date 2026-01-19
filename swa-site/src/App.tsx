@@ -1,10 +1,14 @@
-import { useState, useCallback, useEffect } from 'react'
-import { MenuBar } from './components/MenuBar'
-import { Editor } from './components/Editor'
-import { SearchReplace } from './components/SearchReplace'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
+import { LoginPage } from './components/LoginPage'
 import { useAuth } from './hooks/useAuth'
 import { useConfig } from './hooks/useConfig'
 import { getFile, saveFile } from './services/github'
+
+// Lazy load heavy components only after authentication
+// This significantly reduces initial bundle size and bandwidth usage
+const MenuBar = lazy(() => import('./components/MenuBar').then((m) => ({ default: m.MenuBar })))
+const Editor = lazy(() => import('./components/Editor').then((m) => ({ default: m.Editor })))
+const SearchReplace = lazy(() => import('./components/SearchReplace').then((m) => ({ default: m.SearchReplace })))
 
 function App() {
   const { user, loading, login, logout } = useAuth()
@@ -96,34 +100,49 @@ function App() {
     )
   }
 
+  // Show minimal login page if user is not authenticated
+  // This keeps initial page load lightweight and bandwidth-friendly
+  if (!user) {
+    return <LoginPage onLogin={login} loading={loading} />
+  }
+
+  // Main editor interface - only loaded after authentication
   return (
-    <div className='h-screen flex flex-col'>
-      <MenuBar
-        documentPath={config.documentPath}
-        isLoaded={isLoaded}
-        onLoad={handleLoad}
-        onSave={handleSave}
-        onSearchReplace={() => setIsSearchOpen(true)}
-        hasChanges={hasChanges}
-        saving={saving}
-        user={user}
-        onLogin={login}
-        onLogout={logout}
-      />
+    <Suspense
+      fallback={
+        <div className='h-screen flex items-center justify-center bg-gray-100'>
+          <div className='text-gray-600'>Loading editor...</div>
+        </div>
+      }
+    >
+      <div className='h-screen flex flex-col'>
+        <MenuBar
+          documentPath={config.documentPath}
+          isLoaded={isLoaded}
+          onLoad={handleLoad}
+          onSave={handleSave}
+          onSearchReplace={() => setIsSearchOpen(true)}
+          hasChanges={hasChanges}
+          saving={saving}
+          user={user}
+          onLogin={login}
+          onLogout={logout}
+        />
 
-      {error && <div className='bg-red-100 border-b border-red-300 text-red-700 px-4 py-2 text-sm'>Error: {error}</div>}
+        {error && <div className='bg-red-100 border-b border-red-300 text-red-700 px-4 py-2 text-sm'>Error: {error}</div>}
 
-      <Editor content={content} onChange={setContent} disabled={!isLoaded} />
+        <Editor content={content} onChange={setContent} disabled={!isLoaded} />
 
-      <SearchReplace isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onReplace={handleReplace} />
+        <SearchReplace isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onReplace={handleReplace} />
 
-      <div className='bg-gray-200 px-4 py-1 text-sm text-gray-600 flex justify-between'>
-        <span>{isLoaded ? `Editing: ${config.documentPath}` : 'No document loaded'}</span>
-        <span>
-          Lines: {content.split('\n').length} | Characters: {content.length}
-        </span>
+        <div className='bg-gray-200 px-4 py-1 text-sm text-gray-600 flex justify-between'>
+          <span>{isLoaded ? `Editing: ${config.documentPath}` : 'No document loaded'}</span>
+          <span>
+            Lines: {content.split('\n').length} | Characters: {content.length}
+          </span>
+        </div>
       </div>
-    </div>
+    </Suspense>
   )
 }
 

@@ -4,6 +4,7 @@ export interface UserInfo {
   userDetails: string
   userRoles: string[]
   accessToken?: string
+  claims?: Array<{ typ: string; val: string }>
 }
 
 export interface ClientPrincipal {

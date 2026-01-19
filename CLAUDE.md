@@ -14,6 +14,7 @@ All commands run from `swa-site/` directory:
 npm install              # Install dependencies
 npm run dev              # Vite dev server at http://localhost:5173
 npm run dev:swa          # Full Azure SWA simulation at http://localhost:4280 (use this for auth testing)
+npm run typecheck        # TypeScript type check only (fast)
 npm run build            # TypeScript check + production build (tsc -b && vite build)
 npm run preview          # Preview production build
 ```

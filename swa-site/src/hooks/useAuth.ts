@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { UserInfo, ClientPrincipal } from '../types'
 
 // Debug helper - comment out the console.log line to disable debugging
-function debug(message: string, data?: any) {
-  if (data !== undefined) {
-    //console.log(`[AUTH DEBUG] ${message}`, JSON.stringify(data, null, 2))
-  } else {
-    //console.log(`[AUTH DEBUG] ${message}`)
-  }
+function debug(_message: string, _data?: any) {
+  // Disabled by default to reduce bundle size
+  // if (_data !== undefined) {
+  //   console.log(`[AUTH DEBUG] ${_message}`, JSON.stringify(_data, null, 2))
+  // } else {
+  //   console.log(`[AUTH DEBUG] ${_message}`)
+  // }
 }
 
 export function useAuth() {

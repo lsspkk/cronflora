@@ -28,6 +28,10 @@ jobs:
         working-directory: swa-site
         run: npm ci
 
+      - name: Type check
+        working-directory: swa-site
+        run: npm run typecheck
+
       - name: Build
         working-directory: swa-site
         run: npm run build
