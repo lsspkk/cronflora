@@ -12,7 +12,7 @@ interface SaveFileBody {
   message: string
 }
 
-async function saveFile(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function saveFile(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('saveFile function invoked')
 
   // Validate authentication via Azure-injected header
@@ -32,7 +32,7 @@ async function saveFile(request: HttpRequest, context: InvocationContext): Promi
   // Get GitHub PAT from environment
   const githubPAT = getGitHubPAT()
   if (!githubPAT) {
-    context.error('GITHUB_PAT environment variable not configured')
+    context.error('FUNCTIONS_API_GITHUB_PAT environment variable not configured')
     return {
       status: 500,
       jsonBody: { error: 'Server configuration error: GitHub PAT not configured' },
@@ -52,7 +52,7 @@ async function saveFile(request: HttpRequest, context: InvocationContext): Promi
 
   const { owner, repo, path, branch, content, sha, message } = body
 
-  if (!owner || !repo || !path || !content || !sha || !message) {
+  if (!owner || !repo || !path || content === undefined || !sha || !message) {
     return {
       status: 400,
       jsonBody: { error: 'Missing required fields: owner, repo, path, content, sha, message' },
@@ -85,6 +85,6 @@ async function saveFile(request: HttpRequest, context: InvocationContext): Promi
 
 app.http('saveFile', {
   methods: ['POST'],
-  authLevel: 'anonymous', // Auth handled by Azure SWA + our x-ms-client-principal check
+  authLevel: 'anonymous',
   handler: saveFile,
 })

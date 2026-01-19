@@ -2,6 +2,9 @@
   "name": "swa-site-api",
   "version": "1.0.0",
   "main": "dist/src/functions/*.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -10,11 +13,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.5.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
-    "@types/node": "^20.0.0",
-    "azure-functions-core-tools": "^4.0.0"
+    "@types/node": "^20.0.0"
   }
 }

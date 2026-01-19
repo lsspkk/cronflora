@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { parseClientPrincipal, isAuthenticated } from '../shared/auth'
 import { getGitHubPAT, getFileFromGitHub } from '../shared/github'
 
-async function getFile(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function getFile(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('getFile function invoked')
 
   // Validate authentication via Azure-injected header
@@ -22,7 +22,7 @@ async function getFile(request: HttpRequest, context: InvocationContext): Promis
   // Get GitHub PAT from environment
   const githubPAT = getGitHubPAT()
   if (!githubPAT) {
-    context.error('GITHUB_PAT environment variable not configured')
+    context.error('FUNCTIONS_API_GITHUB_PAT environment variable not configured')
     return {
       status: 500,
       jsonBody: { error: 'Server configuration error: GitHub PAT not configured' },
@@ -60,6 +60,6 @@ async function getFile(request: HttpRequest, context: InvocationContext): Promis
 
 app.http('getFile', {
   methods: ['GET'],
-  authLevel: 'anonymous', // Auth handled by Azure SWA + our x-ms-client-principal check
+  authLevel: 'anonymous',
   handler: getFile,
 })

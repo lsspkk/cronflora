@@ -20,34 +20,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            swa-site/package-lock.json
-            swa-site/api/package-lock.json
+          cache-dependency-path: swa-site/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: swa-site
-        run: npm ci
-
-      - name: Install API dependencies
-        working-directory: swa-site/api
         run: npm ci
 
       - name: Type check frontend
         working-directory: swa-site
         run: npm run typecheck
 
-      - name: Type check API
-        working-directory: swa-site/api
-        run: npm run typecheck
-
       - name: Build frontend
         working-directory: swa-site
-        run: npm run build
-
-      - name: Build API
-        working-directory: swa-site/api
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
@@ -59,7 +45,7 @@ jobs:
           app_location: "swa-site/dist"
           api_location: "swa-site/api"
           skip_app_build: true
-          skip_api_build: true
+          # Let Azure build the API - this enables runtime detection
 
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
