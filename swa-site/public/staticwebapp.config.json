@@ -1,4 +1,7 @@
 {
+  "platform": {
+    "apiRuntime": "node:20"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "*.{css,js,svg,png,jpg,jpeg,gif,ico}", "/.auth/*", "/api/*"]

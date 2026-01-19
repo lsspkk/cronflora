@@ -163,6 +163,15 @@ echo "Step 6: Validating staticwebapp.config.json..."
 
 CONFIG_FILE="$PROJECT_DIR/public/staticwebapp.config.json"
 
+if grep -q '"apiRuntime"' "$CONFIG_FILE"; then
+    RUNTIME=$(grep -o '"apiRuntime": "[^"]*"' "$CONFIG_FILE" | cut -d'"' -f4)
+    echo -e "  ${GREEN}✓${NC} API runtime configured: $RUNTIME"
+else
+    echo -e "  ${RED}✗${NC} Missing platform.apiRuntime - required for Node.js 20+"
+    echo "    Add to staticwebapp.config.json:"
+    echo '    "platform": { "apiRuntime": "node:20" }'
+fi
+
 if grep -q '"/api/\*"' "$CONFIG_FILE"; then
     echo -e "  ${GREEN}✓${NC} API routes configured"
 fi
