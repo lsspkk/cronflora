@@ -1,14 +1,14 @@
 # Cornflora Project TODO
 
-## In Progress
+## Version 1
+- [ ] Configure authentication for deployed version
+- [ ] Deploy
 - [ ] Set up project infrastructure
-- [ ] Configure authentication
+- [x] Configure authentication for local dev
+- [x] Initialize project repository
+- [x] Create initial documentation
 
-## Backlog
 - [ ] Design main dashboard
 - [ ] Implement user settings
 - [ ] Add export functionality
 
-## Completed
-- [x] Initialize project repository
-- [x] Create initial documentation
