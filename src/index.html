@@ -14,9 +14,9 @@
     <script>
         document.getElementById('testBtn').addEventListener('click', async () => {
             try {
-                const response = await fetch('/api/message');
-                const data = await response.json();
-                document.getElementById('result').textContent = JSON.stringify(data);
+                const response = await fetch('/api/vanilla');
+                const data = await response.text();
+                document.getElementById('result').textContent = data;
             } catch (error) {
                 document.getElementById('result').textContent = 'Error: ' + error.message;
             }

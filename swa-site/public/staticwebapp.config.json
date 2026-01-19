@@ -11,8 +11,8 @@
   ],
   "responseOverrides": {
     "401": {
-      "statusCode": 401,
-      "rewrite": false
+      "redirect": "/.auth/login/github",
+      "statusCode": 302
     }
   },
   "globalHeaders": {
