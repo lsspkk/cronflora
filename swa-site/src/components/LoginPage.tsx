@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 /**
  * Minimal Login Page - Optimized for bandwidth conservation
  */
@@ -8,6 +10,23 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
+  const [apiResult, setApiResult] = useState<string | null>(null)
+  const [apiLoading, setApiLoading] = useState(false)
+
+  const testApi = async () => {
+    setApiLoading(true)
+    setApiResult(null)
+    try {
+      const response = await fetch('/api/hello?name=Cronflora')
+      const data = await response.json()
+      setApiResult(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setApiResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setApiLoading(false)
+    }
+  }
+
   return (
     <div
       style={{
@@ -71,6 +90,44 @@ export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
         >
           {loading ? 'Connecting...' : 'Sign in with GitHub'}
         </button>
+
+        <button
+          onClick={testApi}
+          disabled={apiLoading}
+          style={{
+            background: apiLoading ? '#38a169' : '#48bb78',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '14px 32px',
+            fontSize: '16px',
+            fontWeight: '600',
+            cursor: apiLoading ? 'not-allowed' : 'pointer',
+            width: '100%',
+            marginTop: '12px',
+            transition: 'all 0.2s',
+            opacity: apiLoading ? 0.6 : 1,
+          }}
+        >
+          {apiLoading ? 'Testing...' : 'Test API'}
+        </button>
+
+        {apiResult && (
+          <pre
+            style={{
+              marginTop: '16px',
+              padding: '12px',
+              background: '#f7fafc',
+              borderRadius: '8px',
+              fontSize: '12px',
+              textAlign: 'left',
+              overflow: 'auto',
+              maxHeight: '150px',
+            }}
+          >
+            {apiResult}
+          </pre>
+        )}
       </div>
     </div>
   )

@@ -38,10 +38,6 @@ jobs:
         working-directory: swa-site
         run: npm run typecheck
 
-      - name: Type check API
-        working-directory: swa-site/api
-        run: npm run typecheck
-
       - name: Build frontend
         working-directory: swa-site
         run: npm run build
