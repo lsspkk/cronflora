@@ -1,45 +1,48 @@
-const GITHUB_API = 'https://api.github.com'
-
-interface GitHubFileResponse {
-  content: string
-  sha: string
-  encoding: string
-}
+/**
+ * GitHub API service - proxies requests through Azure Functions backend.
+ * The backend uses a server-side PAT (never exposed to browser).
+ * Authentication is handled by Azure SWA session cookie.
+ */
 
 export interface GitHubFile {
   content: string
   sha: string
 }
 
+interface ApiError {
+  error: string
+}
+
+async function handleApiResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    let errorMessage = `API error: ${response.status} ${response.statusText}`
+    try {
+      const errorData: ApiError = await response.json()
+      errorMessage = errorData.error || errorMessage
+    } catch {
+      // Use default error message
+    }
+    throw new Error(errorMessage)
+  }
+  return response.json()
+}
+
 export async function getFile(
-  token: string,
   owner: string,
   repo: string,
   path: string,
   branch: string
 ): Promise<GitHubFile> {
-  const response = await fetch(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-      },
-    }
-  )
+  const params = new URLSearchParams({ owner, repo, path, branch })
 
-  if (!response.ok) {
-    throw new Error(`Failed to load file: ${response.statusText}`)
-  }
+  const response = await fetch(`/api/getFile?${params}`, {
+    credentials: 'include', // Include session cookie for Azure SWA auth
+  })
 
-  const data: GitHubFileResponse = await response.json()
-  const content = atob(data.content.replace(/\n/g, ''))
-
-  return { content, sha: data.sha }
+  return handleApiResponse<GitHubFile>(response)
 }
 
 export async function saveFile(
-  token: string,
   owner: string,
   repo: string,
   path: string,
@@ -48,28 +51,23 @@ export async function saveFile(
   sha: string,
   message: string
 ): Promise<string> {
-  const response = await fetch(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        content: btoa(content),
-        sha,
-        branch,
-      }),
-    }
-  )
+  const response = await fetch('/api/saveFile', {
+    method: 'POST',
+    credentials: 'include', // Include session cookie for Azure SWA auth
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      owner,
+      repo,
+      path,
+      branch,
+      content,
+      sha,
+      message,
+    }),
+  })
 
-  if (!response.ok) {
-    throw new Error(`Failed to save file: ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  return data.content.sha
+  const result = await handleApiResponse<{ sha: string }>(response)
+  return result.sha
 }

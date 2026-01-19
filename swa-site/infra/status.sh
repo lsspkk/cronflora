@@ -74,14 +74,43 @@ if az staticwebapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" > 
         --name "$APP_NAME" \
         --resource-group "$RESOURCE_GROUP" \
         --query "properties.GITHUB_CLIENT_ID" -o tsv 2>/dev/null)
-    
+
     if [ -z "$GITHUB_CLIENT_ID_SET" ] || [ "$GITHUB_CLIENT_ID_SET" == "null" ]; then
         echo "❌ GitHub OAuth not configured"
         echo "   Run: ./configure-github-oauth.sh"
     else
         echo "✓ GitHub OAuth configured"
     fi
-    
+
+    # Check GitHub PAT configuration (for Azure Functions backend)
+    echo ""
+    echo "Checking GitHub PAT configuration (for API backend)..."
+    GITHUB_PAT_SET=$(az staticwebapp appsettings list \
+        --name "$APP_NAME" \
+        --resource-group "$RESOURCE_GROUP" \
+        --query "properties.FUNCTIONS_API_GITHUB_PAT" -o tsv 2>/dev/null)
+
+    if [ -z "$GITHUB_PAT_SET" ] || [ "$GITHUB_PAT_SET" == "null" ]; then
+        echo "❌ GitHub PAT not configured"
+        echo "   Run: ./configure-github-pat.sh <your-github-pat>"
+        echo "   Or set FUNCTIONS_API_GITHUB_PAT in .env and run: ./configure-github-pat.sh"
+        echo "   Create PAT at: https://github.com/settings/tokens/new (scope: repo)"
+    else
+        echo "✓ GitHub PAT configured (server-side only)"
+    fi
+
+    # Check Azure Functions API
+    echo ""
+    echo "Checking API endpoints..."
+    API_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://$SWA_URL/api/getFile" 2>/dev/null || echo "000")
+    if [ "$API_RESPONSE" == "401" ]; then
+        echo "✓ API endpoints responding (returns 401 for unauthenticated requests as expected)"
+    elif [ "$API_RESPONSE" == "000" ]; then
+        echo "⚠ API endpoints not reachable (may need deployment)"
+    else
+        echo "⚠ API endpoint returned status: $API_RESPONSE"
+    fi
+
 else
     echo "❌ Static Web App not found: $APP_NAME"
     exit 1
@@ -90,3 +119,8 @@ fi
 echo ""
 echo "=== Summary ==="
 echo "Website URL: https://$SWA_URL"
+echo ""
+echo "=== Architecture ==="
+echo "Frontend → Azure SWA (session cookie) → /api/* → Azure Functions → GitHub API"
+echo "                                                         ↓"
+echo "                                              GITHUB_PAT (server-side only)"

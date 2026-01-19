@@ -1,7 +1,19 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "*.{css,js,svg,png,jpg,jpeg,gif,ico}", "/.auth/*"]
+    "exclude": ["/assets/*", "*.{css,js,svg,png,jpg,jpeg,gif,ico}", "/.auth/*", "/api/*"]
+  },
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 401,
+      "rewrite": false
+    }
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",

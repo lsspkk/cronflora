@@ -1,0 +1,210 @@
+# Azure SWA + GitHub API Read/Write Access - Analysis Report
+
+## Current Problem
+
+The app successfully authenticates users via GitHub OAuth on Azure Static Web Apps,
+but cannot access the GitHub API because Azure SWA does NOT expose OAuth access tokens
+to the frontend client.
+
+From `/.auth/me` response, we get:
+- User identity (userId, userDetails, identityProvider)
+- User roles
+- Claims (profile data only - NO access_token claim)
+
+Azure SWA manages OAuth tokens server-side and does NOT pass them to the client.
+
+## Why This Architecture Doesn't Work
+
+### The Current Flow (Broken)
+1. User clicks Login → GitHub OAuth via Azure SWA
+2. Azure SWA manages OAuth flow and stores token server-side
+3. `/.auth/me` returns user profile but NO access token
+4. Frontend tries to call GitHub API → Fails (no token)
+
+### What We Need
+Access to GitHub API requires a valid token with `repo` scope.
+
+## Solutions (Ranked by Complexity)
+
+### Solution 1: Environment Variable PAT (Simplest - Single User)
+**Recommended for personal/single-user apps**
+
+Store a GitHub Personal Access Token as an Azure app setting. All authenticated
+users share this token.
+
+Pros:
+- Simple to implement
+- No backend required
+- Works immediately
+
+Cons:
+- Single token for all users (not user-specific permissions)
+- Must manually rotate token when expired
+- Token has your permissions, not the user's
+
+Implementation:
+1. Create PAT at https://github.com/settings/tokens/new with `repo` scope
+2. Add to Azure: `az staticwebapp appsettings set --name APP_NAME --setting-names "VITE_GITHUB_PAT=ghp_xxx"`
+3. Modify useAuth.ts to use this token for all authenticated users
+
+### Solution 2: Azure Functions API Backend (Moderate)
+**Recommended for multi-user apps with user-specific access**
+
+Add a serverless API backend that stores the PAT securely and proxies GitHub requests.
+
+Architecture:
+```
+Frontend → /api/github/file → Azure Function → GitHub API
+                  ↓
+         PAT stored in Azure Key Vault
+```
+
+Pros:
+- Token never exposed to frontend
+- Can add authorization logic
+- Can use different tokens per repository
+
+Cons:
+- Requires Azure Functions backend
+- More deployment complexity
+- Still uses shared token (not user's OAuth token)
+
+Implementation:
+1. Create `api/` folder with Azure Functions
+2. Create functions for getFile and saveFile
+3. Store PAT in Azure Key Vault
+4. Configure managed identity
+
+### Solution 3: GitHub App with Installation Token (Most Secure)
+**Recommended for production multi-repo apps**
+
+Create a GitHub App that generates installation tokens server-side.
+
+Architecture:
+```
+Frontend → /api/github/token → Azure Function → GitHub App Installation Token
+                                      ↓
+                              JWT signing with private key
+```
+
+Pros:
+- Most secure
+- Fine-grained permissions per repository
+- Tokens are short-lived (1 hour)
+- Can be installed on multiple repos/orgs
+
+Cons:
+- Most complex to implement
+- Requires GitHub App setup
+- Requires Azure Functions + Key Vault
+
+### Solution 4: User OAuth Token via Custom Backend (Enterprise)
+**If you truly need user-specific permissions**
+
+Build custom OAuth flow that captures and stores user tokens.
+
+This is NOT supported by Azure SWA built-in auth. Would require:
+- Custom OAuth implementation
+- Token storage (encrypted)
+- Token refresh handling
+- Full backend infrastructure
+
+## Recommendation for This Project
+
+**Use Solution 1 (Environment Variable PAT)** because:
+1. This appears to be a single-user document editor
+2. You control the repository being edited
+3. Simplest implementation
+4. PAT can have exact permissions needed
+
+### Implementation Steps
+
+1. Create GitHub PAT:
+   - Go to https://github.com/settings/tokens/new
+   - Name: "CronFlora Production"
+   - Expiration: 90 days (or custom)
+   - Select scope: `repo` (Full control of private repositories)
+   - Generate and copy token
+
+2. Add to Azure:
+   ```bash
+   az staticwebapp appsettings set \
+     --name cronflora-editor-swa \
+     --resource-group rg-cronflora-swa-site \
+     --setting-names "VITE_GITHUB_PAT=ghp_your_token_here"
+   ```
+
+3. Modify useAuth.ts:
+   After checking claims and direct property, add:
+   ```typescript
+   // Production: Use configured PAT for authenticated users
+   if (!accessToken && import.meta.env.VITE_GITHUB_PAT) {
+     accessToken = import.meta.env.VITE_GITHUB_PAT
+   }
+   ```
+
+4. Rebuild and deploy
+
+## Security Considerations
+
+### For PAT Solution
+- Token is exposed to authenticated users only (behind Azure SWA auth)
+- Set token expiration and rotate regularly
+- Use minimum required scopes
+- Monitor PAT usage in GitHub settings
+
+### Why Azure SWA Doesn't Expose OAuth Tokens
+Microsoft designed SWA auth for identity verification only, not API delegation.
+The OAuth token stays server-side for security - they don't want tokens in the browser.
+
+### Alternative: Move to Different Platform
+If you need true user-delegated GitHub API access:
+- Azure App Service with custom OAuth
+- Vercel with custom auth
+- Netlify with custom auth
+- Self-hosted solution
+
+## Files to Modify
+
+1. `.env.local` (local dev) - already has VITE_GITHUB_PAT
+2. Azure app settings - add VITE_GITHUB_PAT
+3. `src/hooks/useAuth.ts` - already checks for VITE_GITHUB_PAT fallback
+
+## Current Code Already Supports This
+
+Looking at useAuth.ts lines 53-56:
+```typescript
+// Fallback: Use GitHub PAT from env for local dev (SWA CLI limitation)
+if (!accessToken && import.meta.env.VITE_GITHUB_PAT) {
+  accessToken = import.meta.env.VITE_GITHUB_PAT
+}
+```
+
+This code works for both local AND production! Just add the PAT to Azure.
+
+## Quick Fix Commands
+
+```bash
+# 1. Create PAT at https://github.com/settings/tokens/new with 'repo' scope
+# 2. Add to Azure (replace YOUR_PAT with actual token)
+
+cd infra
+source common.sh
+az staticwebapp appsettings set \
+  --name "$APP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --setting-names "VITE_GITHUB_PAT=YOUR_PAT"
+
+# 3. Verify
+az staticwebapp appsettings list \
+  --name "$APP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query "properties.VITE_GITHUB_PAT"
+```
+
+## References
+
+- Azure SWA Auth: https://learn.microsoft.com/azure/static-web-apps/authentication-authorization
+- Azure SWA User Info: https://learn.microsoft.com/azure/static-web-apps/user-information
+- GitHub PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+- GitHub Apps: https://docs.github.com/en/apps/creating-github-apps

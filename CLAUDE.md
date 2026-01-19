@@ -8,7 +8,7 @@ Cronflora is a GitHub-integrated document editor - a React SPA that allows users
 
 ## Build and Development Commands
 
-All commands run from `swa-site/` directory:
+Frontend commands run from `swa-site/` directory:
 
 ```bash
 npm install              # Install dependencies
@@ -17,6 +17,15 @@ npm run dev:swa          # Full Azure SWA simulation at http://localhost:4280 (u
 npm run typecheck        # TypeScript type check only (fast)
 npm run build            # TypeScript check + production build (tsc -b && vite build)
 npm run preview          # Preview production build
+```
+
+API commands run from `swa-site/api/` directory:
+
+```bash
+npm install              # Install dependencies
+npm run build            # Build TypeScript
+npm run typecheck        # TypeScript check only
+npm start                # Run Azure Functions locally
 ```
 
 **Note:** No test framework or linter is configured.
@@ -32,16 +41,23 @@ npm run preview          # Preview production build
 
 ### Key Flow
 1. User authenticates via GitHub OAuth (managed by Azure SWA)
-2. `useAuth` hook fetches session from `/.auth/me` endpoint, extracts GitHub access token from claims
+2. `useAuth` hook fetches session from `/.auth/me` endpoint (identity only, no tokens)
 3. `useConfig` hook reads repo/file config from `VITE_*` environment variables
-4. `getFile()` / `saveFile()` in `services/github.ts` handle GitHub API calls with base64 encoding and SHA tracking
+4. Frontend calls `/api/getFile` and `/api/saveFile` endpoints (Azure Functions)
+5. Azure Functions validate `x-ms-client-principal` header and call GitHub API using server-side PAT
 
 ### Source Structure (`swa-site/src/`)
 - `App.tsx` - Main component, orchestrates state and data flow
 - `components/` - MenuBar, Editor (textarea with line numbers), SearchReplace modal
 - `hooks/` - `useAuth.ts` (authentication state), `useConfig.ts` (env config)
-- `services/github.ts` - GitHub REST API integration (getFile, saveFile)
+- `services/github.ts` - Calls `/api/*` endpoints (Azure Functions backend)
 - `types.ts` - TypeScript interfaces (UserInfo, AppConfig)
+
+### Azure Functions API (`swa-site/api/`)
+- `src/functions/getFile.ts` - GET /api/getFile - Fetch file from GitHub
+- `src/functions/saveFile.ts` - POST /api/saveFile - Save file to GitHub
+- `src/shared/auth.ts` - Client principal parsing and validation
+- `src/shared/github.ts` - GitHub API utilities (server-side)
 
 ### Azure SWA Configuration
 - `staticwebapp.config.json` - Routes, auth config, security headers
@@ -52,6 +68,8 @@ npm run preview          # Preview production build
 ### Infrastructure (`swa-site/infra/`)
 - `deploy.sh` - Create Azure SWA resource
 - `configure-github-oauth.sh` - Set OAuth credentials in Azure
+- `configure-github-pat.sh` - Set GitHub PAT for API backend (server-side only)
+- `status.sh` - Check deployment and configuration status
 - `destroy.sh` - Delete Azure resources
 
 ## Environment Variables
@@ -68,6 +86,15 @@ For local SWA CLI auth simulation, also add:
 ```
 GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_client_secret
+```
+
+For local API development, create `api/local.settings.json` (see `api/local.settings.json.example`):
+```json
+{
+  "Values": {
+    "FUNCTIONS_API_GITHUB_PAT": "ghp_your_personal_access_token"
+  }
+}
 ```
 
 ## CI/CD

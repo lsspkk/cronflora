@@ -47,19 +47,57 @@ Auth doesn't work locally because `/.auth/*` endpoints only exist on Azure.
 
 ## Security & Authentication Overview
 
-This app uses **Azure Static Web Apps built-in authentication** with **GitHub OAuth**. Users authenticate via GitHub, and Azure manages the OAuth2 flow and session. After login, user identity and tokens are available via the `/.auth/me` endpoint. The app uses a **GitHub access token delegated to the logged-in user** to read and write files in a GitHub repository using the GitHub REST API.
+This app uses **Azure Static Web Apps built-in authentication** with **GitHub OAuth**. Users authenticate via GitHub, and Azure manages the OAuth2 flow and session. After login, Azure manages the authenticated session. The authoritative user identity is provided to backend APIs through the injected `x-ms-client-principal` header, while the `/.auth/me` endpoint is available to the frontend for informational and UI purposes only.
 
-Access tokens are **short-lived**, scoped to the user, and must be handled carefully on the client to avoid leakage. The app does not store long-lived secrets in the frontend codebase.
+
+**Important:** Azure SWA does NOT expose OAuth access tokens to the frontend. The GitHub API requires an access token, so we use a **Managed Azure Function** as a secure backend proxy.
+
+## Production Architecture
+
+```
+User → GitHub OAuth (Azure SWA) → Session Cookie
+                                        ↓
+Frontend (authenticated) → /api/getFile, /api/saveFile
+                                        ↓
+              Azure Function (x-ms-client-principal header injected by Azure)
+                                        ↓
+              GitHub API (using server-side PAT - never exposed to browser)
+```
+
+**Why this architecture:**
+
+1. Azure SWA authenticates users and issues a session cookie
+2. Frontend calls `/api/*` endpoints - Azure automatically validates the session
+3. Azure injects `x-ms-client-principal` header (Base64 user info) - **cannot be forged by client**
+4. Azure Function verifies user is authenticated, then calls GitHub API using a server-side PAT
+5. The PAT is stored as an Azure app setting (without `VITE_` prefix) - never in frontend code
+
+**Security guarantees:**
+- Only authenticated users can call `/api/*` (enforced by Azure infrastructure)
+- User identity is guaranteed by Azure - the `x-ms-client-principal` header is injected server-side
+- GitHub PAT stays server-side, never exposed to the browser
+- No tokens in frontend JavaScript bundle
+
+
+### Additional Security & Operational Notes
+
+- Access to `/api/*` endpoints **must be explicitly restricted** to authenticated users using `staticwebapp.config.json` (e.g. `allowedRoles: ["authenticated"]`). Authentication is not implicit without this configuration.
+- Azure Functions **must validate the presence and contents** of the injected `x-ms-client-principal` header and reject requests where it is missing or invalid.
+- The GitHub Personal Access Token represents a **shared application identity**: all GitHub API operations are performed as the PAT owner, not as the individual end user.
+- The `/.auth/me` endpoint is intended for UI and debugging only and **must not be used as a security boundary**.
+- Azure Static Web Apps and Azure Functions currently fit within free/consumption tiers for low usage, but **cost is subject to Azure pricing and quota changes**.
+
 
 ## Blunt Security Summary
 
 - **Auth provider:** GitHub OAuth via Azure Static Web Apps  
-- **Tokens used:** User-scoped GitHub OAuth access token  
-- **Token location:** Retrieved at runtime from `/.auth/me` session  
-- **Token usage:** GitHub REST API (read/write repository contents)  
-- **Main risks:** Token exposure via XSS, overly broad GitHub scopes, leaked secrets  
-- **Mitigations:** HTTPS only, minimal OAuth scopes, no persistent token storage, GitHub secrets for config  
-- **Trust model:** User permissions == GitHub permissions  
+- **Frontend tokens:** None - no secrets in browser  
+- **API authentication:** Azure session cookie + `x-ms-client-principal` header (injected by Azure)  
+- **GitHub access:** Server-side PAT in Azure Function (stored in app settings)  
+- **Token exposure risk:** Eliminated - PAT never sent to browser  
+- **User verification:** Azure infrastructure guarantees identity via injected header  
+- **Trust model:** User must authenticate via GitHub, then Azure Function authorizes GitHub API calls  
+- **Cost:** Free tier - Managed Azure Functions included in SWA Free plan  
 
 ## Official Documentation
 

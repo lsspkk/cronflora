@@ -4,11 +4,36 @@ import subprocess
 import sys
 import time
 import json
+import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
-RESOURCE_GROUP = "rg-cronflora-swa-site"
-APP_NAME = "swa-document-editor"
+ENV_FILE = Path(__file__).parent / ".env"
+
+def load_env():
+    if not ENV_FILE.exists():
+        print(f"✗ .env file not found at {ENV_FILE}")
+        sys.exit(1)
+    
+    env_vars = {}
+    with open(ENV_FILE) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                env_vars[key.strip()] = value.strip()
+    
+    required = ['RESOURCE_GROUP', 'APP_NAME']
+    for key in required:
+        if key not in env_vars:
+            print(f"✗ {key} not found in .env")
+            sys.exit(1)
+    
+    return env_vars
+
+ENV = load_env()
+RESOURCE_GROUP = ENV['RESOURCE_GROUP']
+APP_NAME = ENV['APP_NAME']
 
 def run(cmd, cwd=PROJECT_ROOT):
     result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)

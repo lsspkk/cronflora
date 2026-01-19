@@ -24,13 +24,13 @@ function App() {
   const hasChanges = content !== originalContent
 
   const handleLoad = useCallback(async () => {
-    if (!user?.accessToken) {
+    if (!user) {
       setError('Please log in to load the document')
       return
     }
     try {
       setError(null)
-      const file = await getFile(user.accessToken, config.githubOwner, config.githubRepo, config.documentPath, config.githubBranch)
+      const file = await getFile(config.githubOwner, config.githubRepo, config.documentPath, config.githubBranch)
       setContent(file.content)
       setOriginalContent(file.content)
       setFileSha(file.sha)
@@ -42,13 +42,13 @@ function App() {
 
   // Auto-load file when user logs in
   useEffect(() => {
-    if (user?.accessToken && !isLoaded && !loading) {
+    if (user && !isLoaded && !loading) {
       handleLoad()
     }
-  }, [user?.accessToken, isLoaded, loading, handleLoad])
+  }, [user, isLoaded, loading, handleLoad])
 
   const handleSave = useCallback(async () => {
-    if (!user?.accessToken) {
+    if (!user) {
       setError('Please log in to save changes')
       return
     }
@@ -60,7 +60,6 @@ function App() {
       setError(null)
       setSaving(true)
       const newSha = await saveFile(
-        user.accessToken,
         config.githubOwner,
         config.githubRepo,
         config.documentPath,
