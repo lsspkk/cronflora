@@ -35,6 +35,11 @@ jobs:
       - name: Build frontend
         working-directory: swa-site
         run: npm run build
+        env:
+          VITE_GITHUB_OWNER: ${{ secrets.VITE_GITHUB_OWNER }}
+          VITE_GITHUB_REPO: ${{ secrets.VITE_GITHUB_REPO }}
+          VITE_GITHUB_BRANCH: ${{ secrets.VITE_GITHUB_BRANCH || 'main' }}
+          VITE_DOCUMENT_PATH: ${{ secrets.VITE_DOCUMENT_PATH }}
 
       - name: Install API dependencies
         working-directory: swa-site/api2
