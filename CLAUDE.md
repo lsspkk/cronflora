@@ -87,11 +87,10 @@ Config file stored in GitHub repo (path set via `CRONFLORA_CONFIG_PATH`):
 ### Infrastructure (`swa-site/infra/`)
 - `start-local.sh` - Start local dev environment with hot reload
 - `deploy.sh` - Create Azure SWA resource
-- `configure-github-oauth.sh` - Set OAuth credentials in Azure
-- `configure-cronflora.sh` - Set CRONFLORA_* env vars in Azure
-- `configure-github-pat.sh` - Set GitHub PAT for API backend
+- `configure.sh` - Set all Azure app settings (OAuth, PAT, CRONFLORA_*)
 - `status.sh` - Check deployment and configuration status
 - `destroy.sh` - Delete Azure resources
+- `push.py` - Typecheck, build API, push, and watch deployment
 
 Configuration uses `.env` file (see `infra/.env.example`).
 
@@ -112,9 +111,9 @@ For local API development, create `api2/local.settings.json`:
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "GITHUB_PAT": "ghp_your_personal_access_token",
     "CRONFLORA_GITHUB_OWNER": "your-github-username",
-    "CRONFLORA_GITHUB_REPO": "cronflora",
+    "CRONFLORA_GITHUB_REPO": "your-documents-repo",
     "CRONFLORA_GITHUB_BRANCH": "main",
-    "CRONFLORA_CONFIG_PATH": "dokumenttiprojekti/cronflora-config.json"
+    "CRONFLORA_CONFIG_PATH": "cronflora-config.json"
   }
 }
 ```

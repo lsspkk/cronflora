@@ -5,8 +5,8 @@
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "GITHUB_PAT": "ghp_your_personal_access_token_here",
     "CRONFLORA_GITHUB_OWNER": "your-github-username",
-    "CRONFLORA_GITHUB_REPO": "cronflora",
+    "CRONFLORA_GITHUB_REPO": "your-documents-repo",
     "CRONFLORA_GITHUB_BRANCH": "main",
-    "CRONFLORA_CONFIG_PATH": "dokumenttiprojekti/cronflora-config.json"
+    "CRONFLORA_CONFIG_PATH": "cronflora-config.json"
   }
 }
