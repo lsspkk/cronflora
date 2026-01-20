@@ -1,6 +1,10 @@
 # Cornflora Project TODO
 
 ## Version 1
+
+- [x] Support multiple files, and dark/light mode.
+  20.1.2026 13:00
+
 - [x] Configure authentication for deployed version
   20.1.2026 01:52   
  
