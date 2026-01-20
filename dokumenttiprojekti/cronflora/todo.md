@@ -15,7 +15,4 @@
 - [x] Initialize project: basics
   19.1.2026 10:30
 
-- [ ] Design main dashboard
-- [ ] Implement user settings
-- [ ] Add export functionality
 
