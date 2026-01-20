@@ -5,6 +5,7 @@ import sys
 import time
 import json
 import os
+import shutil
 from pathlib import Path
 from datetime import datetime
 
@@ -154,7 +155,17 @@ def wait_for_deployment():
                 sys.exit(1)
             break
         
-        print(f"  {minutes}m {seconds}s", end="\r")
+        # Progress bar based on average deployment time
+        history = load_deployment_history()
+        successful = [e['duration'] for e in history if e['success']]
+        avg_time = sum(successful) / len(successful) if successful else 180
+
+        pct = min(100, int(elapsed / avg_time * 100))
+        term_width = shutil.get_terminal_size().columns
+        bar_width = term_width - 20  # space for time and percentage
+        filled = int(bar_width * pct / 100)
+        bar = '█' * filled + '░' * (bar_width - filled)
+        print(f"  {bar} {pct:3d}% {minutes}m {seconds:02d}s", end="\r")
         time.sleep(2)
 
 def get_swa_url():
