@@ -21,6 +21,7 @@ function App() {
   const [originalContent, setOriginalContent] = useState('')
   const [fileSha, setFileSha] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
+  const [loadAttempted, setLoadAttempted] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -56,7 +57,7 @@ function App() {
   )
 
   useEffect(() => {
-    if (!user || !config || configLoading || isLoaded || fileLoading) {
+    if (!user || !config || configLoading || isLoaded || fileLoading || loadAttempted) {
       return
     }
 
@@ -64,10 +65,11 @@ function App() {
     if (lastPath) {
       const exists = config.documents.some((d) => d.path === lastPath)
       if (exists) {
+        setLoadAttempted(true)
         loadFile(lastPath)
       }
     }
-  }, [user, config, configLoading, isLoaded, fileLoading, loadFile])
+  }, [user, config, configLoading, isLoaded, fileLoading, loadAttempted, loadFile])
 
   const handleSelectFile = useCallback(
     (doc: DocumentConfig) => {
