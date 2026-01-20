@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 /**
  * Minimal Login Page - Optimized for bandwidth conservation
  */
@@ -10,37 +8,6 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
-  const [apiResult, setApiResult] = useState<string | null>(null)
-  const [apiLoading, setApiLoading] = useState(false)
-
-  const testMessageApi = async () => {
-    setApiLoading(true)
-    setApiResult(null)
-    try {
-      const response = await fetch('/api/message')
-      const data = await response.json()
-      setApiResult(`GET /api/message\n\n${JSON.stringify(data, null, 2)}`)
-    } catch (error) {
-      setApiResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setApiLoading(false)
-    }
-  }
-
-  const testHelloApi = async () => {
-    setApiLoading(true)
-    setApiResult(null)
-    try {
-      const response = await fetch('/api/hello?name=Cronflora')
-      const data = await response.json()
-      setApiResult(`GET /api/hello?name=Cronflora\n\n${JSON.stringify(data, null, 2)}`)
-    } catch (error) {
-      setApiResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setApiLoading(false)
-    }
-  }
-
   return (
     <div
       style={{
@@ -74,7 +41,7 @@ export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
             marginTop: 0,
           }}
         >
-          Cronflora
+          CronFlora
         </h1>
 
         <button
@@ -104,81 +71,6 @@ export function LoginPage({ onLogin, loading = false }: LoginPageProps) {
         >
           {loading ? 'Connecting...' : 'Sign in with GitHub'}
         </button>
-
-        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-          <button
-            onClick={testMessageApi}
-            disabled={apiLoading}
-            style={{
-              background: apiLoading ? '#38a169' : '#48bb78',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '14px 16px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: apiLoading ? 'not-allowed' : 'pointer',
-              flex: 1,
-              transition: 'all 0.2s',
-              opacity: apiLoading ? 0.6 : 1,
-            }}
-            onMouseOver={(e) => {
-              if (!apiLoading) {
-                e.currentTarget.style.background = '#38a169'
-              }
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = apiLoading ? '#38a169' : '#48bb78'
-            }}
-          >
-            Test /api/message
-          </button>
-
-          <button
-            onClick={testHelloApi}
-            disabled={apiLoading}
-            style={{
-              background: apiLoading ? '#3182ce' : '#4299e1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '14px 16px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: apiLoading ? 'not-allowed' : 'pointer',
-              flex: 1,
-              transition: 'all 0.2s',
-              opacity: apiLoading ? 0.6 : 1,
-            }}
-            onMouseOver={(e) => {
-              if (!apiLoading) {
-                e.currentTarget.style.background = '#3182ce'
-              }
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = apiLoading ? '#3182ce' : '#4299e1'
-            }}
-          >
-            Test /api/hello
-          </button>
-        </div>
-
-        {apiResult && (
-          <pre
-            style={{
-              marginTop: '16px',
-              padding: '12px',
-              background: '#f7fafc',
-              borderRadius: '8px',
-              fontSize: '12px',
-              textAlign: 'left',
-              overflow: 'auto',
-              maxHeight: '150px',
-            }}
-          >
-            {apiResult}
-          </pre>
-        )}
       </div>
     </div>
   )

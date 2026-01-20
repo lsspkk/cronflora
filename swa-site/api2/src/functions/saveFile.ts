@@ -1,12 +1,10 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { parseClientPrincipal, isAuthenticated } from '../shared/auth'
 import { getGitHubPAT, saveFileToGitHub } from '../shared/github'
+import { getRepoConfig } from '../shared/config'
 
 interface SaveFileBody {
-  owner: string
-  repo: string
   path: string
-  branch: string
   content: string
   sha: string
   message: string
@@ -39,10 +37,20 @@ async function saveFile(request: HttpRequest, context: InvocationContext): Promi
     }
   }
 
+  // Get repo config from environment
+  const repoConfig = getRepoConfig()
+  if (!repoConfig.owner || !repoConfig.repo) {
+    context.error('GITHUB_OWNER or GITHUB_REPO environment variable not configured')
+    return {
+      status: 500,
+      jsonBody: { error: 'Server configuration error: GitHub repository not configured' },
+    }
+  }
+
   // Parse request body
   let body: SaveFileBody
   try {
-    body = await request.json() as SaveFileBody
+    body = (await request.json()) as SaveFileBody
   } catch {
     return {
       status: 400,
@@ -57,21 +65,21 @@ async function saveFile(request: HttpRequest, context: InvocationContext): Promi
     }
   }
 
-  const { owner, repo, path, branch, content, sha, message } = body
+  const { path, content, sha, message } = body
 
-  if (!owner || !repo || !path || content === undefined || !sha || !message) {
+  if (!path || content === undefined || !sha || !message) {
     return {
       status: 400,
-      jsonBody: { error: 'Missing required fields: owner, repo, path, content, sha, message' },
+      jsonBody: { error: 'Missing required fields: path, content, sha, message' },
     }
   }
 
   try {
     const result = await saveFileToGitHub(githubPAT, {
-      owner,
-      repo,
+      owner: repoConfig.owner,
+      repo: repoConfig.repo,
       path,
-      branch: branch || 'main',
+      branch: repoConfig.branch,
       content,
       sha,
       message,

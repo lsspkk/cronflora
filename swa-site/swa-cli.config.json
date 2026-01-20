@@ -4,7 +4,7 @@
     "swa-site": {
       "appLocation": ".",
       "outputLocation": "dist",
-      "apiLocation": "api3",
+      "apiLocation": "api2",
       "appBuildCommand": "npm run build",
       "appDevserverUrl": "http://localhost:5173",
       "run": "npm run dev"

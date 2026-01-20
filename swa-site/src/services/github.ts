@@ -4,6 +4,8 @@
  * Authentication is handled by Azure SWA session cookie.
  */
 
+import { RepoConfig } from '../types'
+
 export interface GitHubFile {
   content: string
   sha: string
@@ -27,41 +29,38 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
   return response.json()
 }
 
-export async function getFile(
-  owner: string,
-  repo: string,
-  path: string,
-  branch: string
-): Promise<GitHubFile> {
-  const params = new URLSearchParams({ owner, repo, path, branch })
+export async function getConfig(): Promise<RepoConfig> {
+  const response = await fetch('/api/getConfig', {
+    credentials: 'include',
+  })
+
+  return handleApiResponse<RepoConfig>(response)
+}
+
+export async function getFile(path: string): Promise<GitHubFile> {
+  const params = new URLSearchParams({ path })
 
   const response = await fetch(`/api/getFile?${params}`, {
-    credentials: 'include', // Include session cookie for Azure SWA auth
+    credentials: 'include',
   })
 
   return handleApiResponse<GitHubFile>(response)
 }
 
 export async function saveFile(
-  owner: string,
-  repo: string,
   path: string,
-  branch: string,
   content: string,
   sha: string,
   message: string
 ): Promise<string> {
   const response = await fetch('/api/saveFile', {
     method: 'POST',
-    credentials: 'include', // Include session cookie for Azure SWA auth
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      owner,
-      repo,
       path,
-      branch,
       content,
       sha,
       message,

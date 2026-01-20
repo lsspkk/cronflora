@@ -9,9 +9,16 @@ export interface ClientPrincipal {
   clientPrincipal: UserInfo | null
 }
 
-export interface AppConfig {
-  githubOwner: string
-  githubRepo: string
-  githubBranch: string
-  documentPath: string
+export interface DocumentConfig {
+  path: string
+  description: string
+  name?: string
+  created?: string
+}
+
+export interface RepoConfig {
+  owner: string
+  repo: string
+  branch: string
+  documents: DocumentConfig[]
 }

@@ -1,0 +1,109 @@
+# Plan: Support Multiple Files with Metadata Configuration
+
+## Status: IMPLEMENTED
+
+## Overview
+Replace `VITE_DOCUMENT_PATH` env var with a config file stored in the target GitHub repo, fetched via authenticated API after login. Cache config in localStorage with daily refresh.
+
+## Security Model
+The config file lives in the same repo as the documents. If user has access to the repo (via GitHub PAT on server), they can see both the config and the documents. Same security boundary.
+
+Note: Last opened file is stored in localStorage (not ideal security, but avoids database).
+
+## Config File Location
+`dokumenttiprojekti/cronflora-config.json`
+
+```json
+{
+  "documents": [
+    {
+      "path": "dokumenttiprojekti/cornflora/todo.md",
+      "description": "Project todo list and tasks",
+      "name": "Todo"
+    },
+    {
+      "path": "dokumenttiprojekti/journal.md",
+      "description": "Development journal and notes",
+      "name": "Journal"
+    }
+  ]
+}
+```
+
+### Metadata Fields
+- `path` (required) - File path in repo
+- `description` (required) - Short description of the document
+- `name` (optional) - Display name (defaults to filename without extension)
+- `created` (optional) - Creation date (ISO format)
+
+## Server-Side Environment Variables
+All use `CRONFLORA_` prefix and are stored in Azure App Settings:
+- `CRONFLORA_GITHUB_OWNER` - repo owner
+- `CRONFLORA_GITHUB_REPO` - repo name
+- `CRONFLORA_GITHUB_BRANCH` - branch (default: main)
+- `CRONFLORA_CONFIG_PATH` - path to config file (default: dokumenttiprojekti/cronflora-config.json)
+
+Frontend has NO config - everything comes from authenticated API.
+
+## User Flow
+1. User logs in
+2. Fetch config (from cache if <24h old, else from API)
+3. If user had previously opened a file (in localStorage) and it exists in config → load it
+4. Otherwise → show empty editor, user picks from "Files" dropdown in menu bar
+5. User selects file → load it, save selection to localStorage
+
+## Files Created/Modified
+
+### API (swa-site/api2/)
+- `src/functions/getConfig.ts` - new endpoint to fetch config from GitHub
+- `src/functions/getFile.ts` - updated to use CRONFLORA_* env vars
+- `src/functions/saveFile.ts` - updated to use CRONFLORA_* env vars
+- `src/shared/config.ts` - helper to read repo config from env
+- `local.settings.json.example` - updated with CRONFLORA_* vars
+
+### Frontend (swa-site/src/)
+- `types.ts` - added DocumentConfig, RepoConfig interfaces
+- `services/storage.ts` - localStorage caching service
+- `services/github.ts` - simplified API (path-only params)
+- `hooks/useRepoConfig.ts` - fetches config with caching
+- `components/FileDropdown.tsx` - file selection dropdown
+- `components/MenuBar.tsx` - updated with FileDropdown
+- `App.tsx` - full rewrite for multi-file support
+- Deleted: `hooks/useConfig.ts`
+
+### Infrastructure (swa-site/infra/)
+- `configure-repo.sh` - NEW script to set CRONFLORA_* variables in Azure
+
+## Deployment
+
+### 1. Configure Azure App Settings
+```bash
+cd swa-site/infra
+
+# Set repository settings
+./configure-repo.sh lsspkk cronflora main dokumenttiprojekti/cronflora-config.json
+
+# Set GitHub PAT (if not already done)
+./configure-github-pat.sh ghp_your_token
+```
+
+### 2. For Local Development
+Edit `api2/local.settings.json`:
+```json
+{
+  "Values": {
+    "GITHUB_PAT": "ghp_your_token",
+    "CRONFLORA_GITHUB_OWNER": "lsspkk",
+    "CRONFLORA_GITHUB_REPO": "cronflora",
+    "CRONFLORA_GITHUB_BRANCH": "main",
+    "CRONFLORA_CONFIG_PATH": "dokumenttiprojekti/cronflora-config.json"
+  }
+}
+```
+
+## UI Design
+- "Files" dropdown in menu bar
+- Dropdown shows: document name, description underneath in smaller text
+- Current file has checkmark indicator
+- Status bar shows current file path when loaded
+- Empty editor state when no file selected
