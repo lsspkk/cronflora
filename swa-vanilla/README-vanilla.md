@@ -1,6 +1,7 @@
 # Vanilla Static Web App
 
 Minimal hello world Static Web App with API.
+Use this to make sure that your SWA/Azure frontend + API setup is working.
 
 ## Structure
 - `index.html` - Simple hello world page
