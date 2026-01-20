@@ -31,6 +31,11 @@ export function parseClientPrincipal(header: string | null): ClientPrincipal | n
 }
 
 export function isAuthenticated(principal: ClientPrincipal | null): boolean {
+  // Allow bypassing auth in local development with env variable
+  if (process.env.BYPASS_AUTH === 'true') {
+    return true
+  }
+
   if (!principal) {
     return false
   }

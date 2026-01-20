@@ -1,13 +1,27 @@
 {
   "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
   "configurations": {
+    "dev": {
+      "appLocation": ".",
+      "run": "npm run dev",
+      "appDevserverUrl": "http://localhost:5173",
+      "apiDevserverUrl": "http://localhost:7071"
+    },
     "swa-site": {
       "appLocation": ".",
       "outputLocation": "dist",
       "apiLocation": "api2",
-      "appBuildCommand": "npm run build",
-      "appDevserverUrl": "http://localhost:5173",
-      "run": "npm run dev"
+      "appBuildCommand": "npm run build"
+    }
+  },
+  "auth": {
+    "identityProviders": {
+      "github": {
+        "registration": {
+          "clientIdSettingName": "GITHUB_CLIENT_ID",
+          "clientSecretSettingName": "GITHUB_CLIENT_SECRET"
+        }
+      }
     }
   }
 }

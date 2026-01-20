@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:swa": "swa start http://localhost:5173 --run \"npm run dev\"",
+    "dev:swa": "bash -c 'export GITHUB_CLIENT_ID=$(grep GITHUB_CLIENT_ID .env.local | cut -d \"=\" -f2) && export GITHUB_CLIENT_SECRET=$(grep GITHUB_CLIENT_SECRET .env.local | cut -d \"=\" -f2) && swa start dev'",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"

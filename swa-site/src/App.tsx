@@ -2,11 +2,11 @@ import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { LoginPage } from './components/LoginPage'
 import { useAuth } from './hooks/useAuth'
 import { useRepoConfig } from './hooks/useRepoConfig'
+import { useDarkMode } from './hooks/useDarkMode'
 import { getFile, saveFile } from './services/github'
 import { getLastOpenedFile, setLastOpenedFile } from './services/storage'
 import { DocumentConfig } from './types'
 
-// Lazy load heavy components only after authentication
 const MenuBar = lazy(() => import('./components/MenuBar').then((m) => ({ default: m.MenuBar })))
 const Editor = lazy(() => import('./components/Editor').then((m) => ({ default: m.Editor })))
 const SearchReplace = lazy(() => import('./components/SearchReplace').then((m) => ({ default: m.SearchReplace })))
@@ -14,6 +14,7 @@ const SearchReplace = lazy(() => import('./components/SearchReplace').then((m) =
 function App() {
   const { user, loading: authLoading, login, logout } = useAuth()
   const { config, loading: configLoading, error: configError } = useRepoConfig(!!user)
+  const [isDark, toggleDark] = useDarkMode()
 
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
   const [content, setContent] = useState('')
@@ -27,32 +28,33 @@ function App() {
 
   const hasChanges = content !== originalContent
 
-  // Load file from GitHub
-  const loadFile = useCallback(async (path: string) => {
-    if (!user) {
-      setError('Please log in to load the document')
-      return
-    }
+  const loadFile = useCallback(
+    async (path: string) => {
+      if (!user) {
+        setError('Please log in to load the document')
+        return
+      }
 
-    setFileLoading(true)
-    setError(null)
+      setFileLoading(true)
+      setError(null)
 
-    try {
-      const file = await getFile(path)
-      setContent(file.content)
-      setOriginalContent(file.content)
-      setFileSha(file.sha)
-      setSelectedPath(path)
-      setLastOpenedFile(path)
-      setIsLoaded(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load document')
-    } finally {
-      setFileLoading(false)
-    }
-  }, [user])
+      try {
+        const file = await getFile(path)
+        setContent(file.content)
+        setOriginalContent(file.content)
+        setFileSha(file.sha)
+        setSelectedPath(path)
+        setLastOpenedFile(path)
+        setIsLoaded(true)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load document')
+      } finally {
+        setFileLoading(false)
+      }
+    },
+    [user],
+  )
 
-  // Auto-load last opened file when config is ready
   useEffect(() => {
     if (!user || !config || configLoading || isLoaded || fileLoading) {
       return
@@ -60,7 +62,6 @@ function App() {
 
     const lastPath = getLastOpenedFile()
     if (lastPath) {
-      // Check if the last file still exists in config
       const exists = config.documents.some((d) => d.path === lastPath)
       if (exists) {
         loadFile(lastPath)
@@ -68,10 +69,8 @@ function App() {
     }
   }, [user, config, configLoading, isLoaded, fileLoading, loadFile])
 
-  // Handle file selection from dropdown
   const handleSelectFile = useCallback(
     (doc: DocumentConfig) => {
-      // If there are unsaved changes, confirm before switching
       if (hasChanges) {
         const confirmed = window.confirm('You have unsaved changes. Discard them and switch files?')
         if (!confirmed) {
@@ -79,17 +78,15 @@ function App() {
         }
       }
 
-      // Reset editor state
       setContent('')
       setOriginalContent('')
       setFileSha('')
       setIsLoaded(false)
       setError(null)
 
-      // Load the new file
       loadFile(doc.path)
     },
-    [hasChanges, loadFile]
+    [hasChanges, loadFile],
   )
 
   const handleSave = useCallback(async () => {
@@ -126,13 +123,28 @@ function App() {
         }
       }
     },
-    [content]
+    [content],
   )
+
+  // Ctrl+S to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        if (isLoaded && hasChanges && !saving) {
+          handleSave()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isLoaded, hasChanges, saving, handleSave])
 
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-600">Loading...</div>
+      <div className={`h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        <div className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading...</div>
       </div>
     )
   }
@@ -141,46 +153,61 @@ function App() {
     return <LoginPage onLogin={login} loading={authLoading} />
   }
 
-  // Combine errors
   const displayError = error || configError
 
   return (
     <Suspense
       fallback={
-        <div className="h-screen flex items-center justify-center bg-gray-100">
-          <div className="text-gray-600">Loading editor...</div>
+        <div className={`h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+          <div className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading editor...</div>
         </div>
       }
     >
-      <div className="h-screen flex flex-col">
+      <div className='h-screen flex flex-col'>
         <MenuBar
           documents={config?.documents || []}
           selectedPath={selectedPath}
           onSelectFile={handleSelectFile}
           isLoaded={isLoaded}
           onSave={handleSave}
-          onSearchReplace={() => setIsSearchOpen(true)}
+          onSearchReplace={() => setIsSearchOpen(!isSearchOpen)}
           hasChanges={hasChanges}
           saving={saving}
           user={user}
           onLogin={login}
           onLogout={logout}
           configLoading={configLoading}
+          isDark={isDark}
+          onToggleDark={toggleDark}
+        />
+
+        <SearchReplace
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onReplace={handleReplace}
+          onFind={(search, direction) => {
+            // Simple find implementation - just highlights the next/prev occurrence
+            // For a more sophisticated implementation, you could track cursor position
+            alert(`Find ${direction}: "${search}"`)
+          }}
+          isDark={isDark}
         />
 
         {displayError && (
-          <div className="bg-red-100 border-b border-red-300 text-red-700 px-4 py-2 text-sm">Error: {displayError}</div>
+          <div className={`${isDark ? 'bg-red-900 border-red-700 text-red-200' : 'bg-red-100 border-red-300 text-red-700'} border-b px-4 py-2 text-sm`}>
+            Error: {displayError}
+          </div>
         )}
 
         {fileLoading && (
-          <div className="bg-blue-100 border-b border-blue-300 text-blue-700 px-4 py-2 text-sm">Loading file...</div>
+          <div className={`${isDark ? 'bg-blue-900 border-blue-700 text-blue-200' : 'bg-blue-100 border-blue-300 text-blue-700'} border-b px-4 py-2 text-sm`}>
+            Loading file...
+          </div>
         )}
 
-        <Editor content={content} onChange={setContent} disabled={!isLoaded || fileLoading} />
+        <Editor content={content} onChange={setContent} disabled={!isLoaded || fileLoading} isDark={isDark} />
 
-        <SearchReplace isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onReplace={handleReplace} />
-
-        <div className="bg-gray-200 px-4 py-1 text-sm text-gray-600 flex justify-between">
+        <div className={`${isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-200 text-gray-600'} px-4 py-1 text-sm flex justify-between`}>
           <span>{isLoaded && selectedPath ? `Editing: ${selectedPath}` : 'Select a file from the Files menu'}</span>
           <span>
             Lines: {content.split('\n').length} | Characters: {content.length}

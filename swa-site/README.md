@@ -1,48 +1,17 @@
 # Document Editor
 
-A simple document editor built with React, TypeScript, and Tailwind CSS. Deployed as an Azure Static Web App.
+A simple document editor built with React, TypeScript, and Tailwind CSS. Deployed as an Azure Static Web App with GitHub OAuth authentication.
 
-## GitHub Integration
+## Local Development
 
-The app uses GitHub OAuth to authenticate users and the GitHub API to read/write files directly in the repository. Configure the target file path in `.env.local` (local development) or Azure app settings (production):
+1. Create a GitHub OAuth App at https://github.com/settings/developers with homepage `http://localhost:4280` and callback `http://localhost:4280/.auth/login/github/callback`
+2. Copy `.env.example` to `.env.local` and add your `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`
+3. Copy `api2/local.settings.json.example` to `api2/local.settings.json` and configure your `GITHUB_PAT` and `CRONFLORA_*` variables
+4. Run `npm install` in both `swa-site/` and `swa-site/api2/`
+5. Start with `./infra/start-local.sh` or manually with `npm run dev` (API) and `npm run dev:swa` (frontend)
+6. Access at http://localhost:4280 (port 5173 won't have auth)
 
-```
-VITE_GITHUB_OWNER=your-username
-VITE_GITHUB_REPO=cronflora
-VITE_DOCUMENT_PATH=dokumenttiprojekti/cornflora/todo.md
-```
-
-## Setup
-
-1. Copy `.env.example` to `.env.local` and fill in your GitHub details
-2. Run `npm install` and `npm run dev`
-3. For deployment, run scripts in `infra/` folder and configure GitHub OAuth in Azure
-
-
-## Local Development with SWA CLI
-
-Auth doesn't work locally because `/.auth/*` endpoints only exist on Azure.
-
-## Setup
-
-1. Create GitHub OAuth App at https://github.com/settings/developers
-   - Homepage URL: `http://localhost:4280`
-   - Callback URL: `http://localhost:4280/.auth/login/github/callback`
-   - Enable Device Flow: **NO** (not needed for web apps)
-
-2. Add credentials to `.env.local`:
-   ```
-   GITHUB_CLIENT_ID=your_client_id
-   GITHUB_CLIENT_SECRET=your_client_secret
-   ```
-
-3. Install and run:
-   ```bash
-   npm install
-   npm run dev:swa
-   ```
-
-4. Access at `http://localhost:4280` (NOT port 5173)
+For deployment, use the scripts in `infra/` folder
 
 
 ## Security & Authentication Overview

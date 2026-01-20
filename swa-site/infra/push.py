@@ -46,9 +46,14 @@ def run(cmd, cwd=PROJECT_ROOT):
     return result.stdout.strip()
 
 def check_typecheck():
-    print("→ Typechecking...")
+    print("→ Typechecking frontend...")
     run("npm run typecheck")
-    print("✓ Types OK")
+    print("✓ Frontend OK")
+
+def check_api():
+    print("→ Building API...")
+    run("npm run build", cwd=PROJECT_ROOT / "api2")
+    print("✓ API OK")
 
 def git_push():
     print("→ Pushing to GitHub...")
@@ -160,6 +165,7 @@ def main():
     os.chdir(Path(__file__).parent)
     
     check_typecheck()
+    check_api()
     git_push()
     wait_for_deployment()
     

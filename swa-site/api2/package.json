@@ -10,6 +10,7 @@
     "watch": "tsc -w",
     "prestart": "npm run build",
     "start": "func start",
+    "dev": "npm run build && func start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

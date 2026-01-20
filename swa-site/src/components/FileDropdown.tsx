@@ -6,42 +6,38 @@ interface FileDropdownProps {
   selectedPath: string | null
   onSelect: (doc: DocumentConfig) => void
   disabled?: boolean
+  isDark?: boolean
 }
 
 function getDisplayName(doc: DocumentConfig): string {
   if (doc.name) {
     return doc.name
   }
-  // Extract filename without extension
   const parts = doc.path.split('/')
   const filename = parts[parts.length - 1]
   return filename.replace(/\.[^/.]+$/, '')
 }
 
-export function FileDropdown({ documents, selectedPath, onSelect, disabled }: FileDropdownProps) {
+export function FileDropdown({ documents, selectedPath, onSelect, disabled, isDark }: FileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close on escape key
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsOpen(false)
       }
     }
-
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
   }, [])
@@ -56,11 +52,11 @@ export function FileDropdown({ documents, selectedPath, onSelect, disabled }: Fi
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+        className="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
       >
         Files
         <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -70,7 +66,7 @@ export function FileDropdown({ documents, selectedPath, onSelect, disabled }: Fi
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-gray-800 border border-gray-600 rounded shadow-lg z-50">
+        <div className={`absolute top-full left-0 mt-1 w-64 ${isDark ? 'bg-gray-900' : 'bg-gray-800'} border border-gray-600 rounded shadow-lg z-50`}>
           {documents.length === 0 ? (
             <div className="px-3 py-2 text-gray-400 text-sm">No files configured</div>
           ) : (
