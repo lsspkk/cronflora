@@ -39,11 +39,7 @@ export function Editor({ content, onChange, disabled, isDark }: EditorProps) {
         style={{ minWidth: '4rem' }}
       >
         {Array.from({ length: lineCount }, (_, i) => (
-          <div
-            key={i + 1}
-            className="px-3 text-right leading-6"
-            style={{ height: '24px' }}
-          >
+          <div key={i + 1} className='px-3 text-right leading-6' style={{ height: '24px' }}>
             {i + 1}
           </div>
         ))}
@@ -56,7 +52,7 @@ export function Editor({ content, onChange, disabled, isDark }: EditorProps) {
         disabled={disabled}
         className={`flex-1 p-3 font-mono text-sm leading-6 resize-none focus:outline-none ${
           isDark
-            ? 'bg-gray-900 text-gray-100 disabled:bg-gray-800 disabled:text-gray-500'
+            ? 'bg-gray-900 text-gray-300 disabled:bg-gray-800 disabled:text-gray-500'
             : 'bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500'
         }`}
         style={{ lineHeight: '24px' }}
